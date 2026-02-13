@@ -175,14 +175,32 @@ input:focus{
     max-height:90vh;
     overflow-y:auto;
 }
+
+button:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+    div[style*="flex"] button {
+        width: 100%; /* Full width on mobile */
+    }
+}
+
 </style>
 </head>
 
 <body>
 
-<div style="margin-top:10px; text-align:right;">
-    <button type="button" onclick="savePayslip()">💾 Save</button>
-    <button type="button" onclick="window.print()">🖨 Print</button>
+<div style="margin-top:10px; text-align:right; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+    <button type="button" onclick="savePayslip()" 
+        style="padding:6px 12px; background:#2196F3; color:white; border:none; border-radius:4px; cursor:pointer;">
+        💾 Save
+    </button>
+
+    <button type="button" onclick="window.print()" 
+        style="padding:6px 12px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
+        🖨 Print
+    </button>
 </div>
 
 <div class="main-layout">
@@ -213,11 +231,35 @@ input:focus{
     </div>
 
 <!-- Employee -->
-<div style="display:flex; align-items:center; gap:10px;">
+<div style="position:relative; display:flex; align-items:center; gap:10px;">
     <label style="white-space:nowrap;">Employee:</label>
-    <input type="text" id="employee" name="employee" placeholder="Type employee name">
-</div>
 
+    <input 
+        type="text" 
+        id="employee" 
+        name="employee"
+        placeholder="Type employee name"
+        autocomplete="off"
+        style="width:100%;"
+    >
+
+    <!-- Suggestions -->
+    <div id="suggestions"
+         style="
+            position:absolute;
+            top:100%;
+            left:80px;
+            right:0;
+            background:#fff;
+            border:1px solid #ccc;
+            max-height:160px;
+            overflow-y:auto;
+            display:none;
+            z-index:9999;
+            box-shadow:0 2px 6px rgba(0,0,0,0.15);
+         ">
+    </div>
+</div>
 </div>
 
 
@@ -326,8 +368,18 @@ input:focus{
         <span id="listPayDate" style="font-size:14px; font-weight:normal; margin-left:10px;"></span>
     </h3>
 
-    <!-- Print Button -->
-    <button type="button" onclick="printPayslipList()">🖨️ Print List</button>
+<!-- Print and Clear Buttons -->
+<div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
+    <button type="button" onclick="printPayslipList()" 
+        style="padding:6px 12px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
+        🖨️ Print List
+    </button>
+
+    <button type="button" onclick="clearPayslipList()" 
+        style="padding:6px 12px; background:#f44336; color:white; border:none; border-radius:4px; cursor:pointer;">
+        🗑️ Clear List
+    </button>
+</div>
 
     <table border="1" width="100%" id="payslipTable">
         <thead>
@@ -348,6 +400,110 @@ input:focus{
 
 
 <script>
+// ================= EMPLOYEE DATA =================
+const employeeList = [
+    { name: "ALVAREZ, BRYAN", rate: 480 },
+    { name: "GAFFUD, FRANCISCO", rate: 600 },
+    { name: "GAMBALAN, MARK LEO", rate: 550 },
+    { name: "IGNACIO, ANGELITO", rate: 480 },
+    { name: "MARQUEZ, DENVER", rate: 550 },
+    { name: "SALVADOR, MARK ANTHONY", rate: 550 },
+    { name: "DELA CRUZ, ROEL", rate: 480 },
+    { name: "GUERRERO, RIZAL", rate: 480 },
+    { name: "MARQUEZ, JAN GERO", rate: 550 },
+    { name: "GAB", rate: 480 },
+    { name: "BALABAT, ARIEL", rate: 1000 },
+    { name: "DELA CRUZ, ROMEL", rate: 480 },
+    { name: "LANGUIDO, LEYMAR", rate: 480 },
+    { name: "CAGURANGAN, RODOLFO", rate: 480 },
+    { name: "ALVAREZ, JENCELLE", rate: 480 },
+    { name: "COLOMA, ELIZABETH", rate: 600 },
+    { name: "ELDUCAL, CRISTINE", rate: 480 },
+    { name: "GABITAN, MARGIELYN", rate: 550 },
+    { name: "MARTIN, ANGELICA", rate: 480 },
+    { name: "AGREGADO, MARILYN", rate: 600 },
+    { name: "DALAUDIAO, ESTELITA", rate: 480 },
+    { name: "LIBARI, MARIBEL", rate: 480 },
+    { name: "OAO, MA. FE", rate: 480 },
+    { name: "RIVERA, MARIVIC", rate: 500 },
+    { name: "TALAL, EVELYN", rate: 480 },
+    { name: "VALDEZ, LOVELYN", rate: 480 },
+    { name: "GAFFUD, JOANNE", rate: 450 },
+    { name: "REGGIE", rate: 1000 },
+    { name: "FREDDIE", rate: 580 },
+    { name: "MARVIN", rate: 480 },
+    { name: "CHRISTIAN", rate: 480 },
+    { name: "LAGAZO, ERMIE", rate: 500 },
+    { name: "NALDOZA, JEANALYN", rate: 500 },
+    { name: "RODICH, JENNY", rate: 480 },
+    { name: "SIR DIMPLE", rate: 1000 },
+    { name: "BACCAY, KENNETH", rate: 500 },
+    { name: "TALON, MARK LAURENCE", rate: 500 }
+];
+
+
+// ================= AUTOCOMPLETE =================
+const empInput = document.getElementById("employee");
+const rateInput = document.getElementById("rate");
+const suggestionBox = document.getElementById("suggestions");
+
+empInput.addEventListener("input", function(){
+
+    const keyword = this.value.toLowerCase().trim();
+    suggestionBox.innerHTML = "";
+
+    if(!keyword){
+        suggestionBox.style.display = "none";
+        return;
+    }
+
+    const matches = employeeList.filter(e =>
+        e.name.toLowerCase().includes(keyword)
+    );
+
+    if(matches.length === 0){
+        suggestionBox.style.display = "none";
+        return;
+    }
+
+    matches.forEach(emp => {
+
+        const div = document.createElement("div");
+
+        div.textContent = emp.name + " - ₱" + emp.rate;
+
+        div.style.padding = "6px 10px";
+        div.style.cursor = "pointer";
+
+        div.onmouseover = () => div.style.background = "#f0f0f0";
+        div.onmouseout  = () => div.style.background = "#fff";
+
+        div.onclick = () => {
+
+            empInput.value = emp.name;
+            rateInput.value = emp.rate;
+
+            suggestionBox.style.display = "none";
+
+            if(typeof compute === "function"){
+                compute();
+            }
+        };
+
+        suggestionBox.appendChild(div);
+    });
+
+    suggestionBox.style.display = "block";
+});
+
+// Hide kapag click sa labas
+document.addEventListener("click", function(e){
+
+    if(!empInput.contains(e.target) && !suggestionBox.contains(e.target)){
+        suggestionBox.style.display = "none";
+    }
+
+});
 
 // Save all inputs to localStorage
 function saveData(){
@@ -520,16 +676,52 @@ document.querySelectorAll("input").forEach(input=>{
 
 // --- Auto update Pay Date when cutoff changes ---
 document.getElementById("cutoff").addEventListener("change", updatePayDate);
+// --- Realtime Sync Employee to Signature (LAST, FIRST → FIRST LAST) ---
 
-// --- Sync Employee input to signature ---
 const employeeInput = document.getElementById("employee");
 const signatureDiv = document.getElementById("signatureEmployee");
 
-// Update signature whenever input changes
-employeeInput.addEventListener("input", function(){
-    signatureDiv.innerText = employeeInput.value || "EMPLOYEE";
-    localStorage.setItem("employee", employeeInput.value); // save
+function updateSignature() {
+    const val = employeeInput.value.trim();
+
+    if (val === "") {
+        signatureDiv.textContent = "EMPLOYEE";
+        return;
+    }
+
+    // Kapag may comma (LAST, FIRST)
+    if (val.includes(",")) {
+        const parts = val.split(",");
+
+        const last = parts[0].trim();
+        const first = parts[1].trim();
+
+        // FIRST LAST
+        signatureDiv.textContent = (first + " " + last).toUpperCase();
+    } 
+    // Kapag wala pang comma (typing pa lang)
+    else {
+        signatureDiv.textContent = val.toUpperCase();
+    }
+
+    // Optional: save sa localStorage
+    localStorage.setItem("employee", val);
+}
+
+// Real-time update
+employeeInput.addEventListener("input", updateSignature);
+employeeInput.addEventListener("change", updateSignature);
+employeeInput.addEventListener("blur", updateSignature);
+
+// Load saved name pag reload
+window.addEventListener("load", () => {
+    const saved = localStorage.getItem("employee");
+    if (saved) {
+        employeeInput.value = saved;
+        updateSignature();
+    }
 });
+
 
 // Load saved Employee on page load
 window.onload = function(){
@@ -633,6 +825,23 @@ function printPayslipList() {
         document.body.classList.remove("print-list-mode");
     }, 1000);
 }
+//JS Function to Clear Payslip List
+function clearPayslipList() {
+    if (!payslips.length) {
+        alert("The payslip list is already empty!");
+        return;
+    }
+
+    const confirmClear = confirm("Are you sure you want to delete all payslips from the list? This action cannot be undone.");
+    if (!confirmClear) return;
+
+    payslips = []; // clear array
+    localStorage.setItem("payslips", JSON.stringify(payslips)); // update storage
+    loadPayslipList(); // refresh table
+
+    alert("All payslips have been cleared!");
+}
+
 
 // --- Existing Save Payslip Function ---
 function savePayslip() {
