@@ -10,13 +10,22 @@ body{
     font-size: 13px;
 }
 
-.payslip{
-    width:578px;
-    border:1px solid #000;
-    padding:7px;
+.payslip {
+    width: 100%;
+    max-width: 900px;       /* para hindi sobrang stretched */
+    margin: 0 auto;         /* center horizontally */
+    border: 1px solid #000;
+    padding: 7px;
+    box-sizing: border-box;
 }
 
+
 .center{text-align:center;}
+
+.center h3{
+    margin: 5px 0;
+    font-size:18px;
+}
 
 table{
     width:100%;
@@ -67,6 +76,7 @@ input:focus{
     font-weight:bold;
 }
 
+
 /* --- Default print: Payslip Form (Landscape) --- */
 /* --- Print Payslip Full Page (Portrait) --- */
 @media print {
@@ -84,102 +94,211 @@ input:focus{
         margin: 0;
         padding: 0;
     }
- th, td {
+    
+    th, td {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-    /* Payslip full width */
+
+    /* Payslip full width but centered */
     .payslip {
-        width: 100%;          /* Full page width */
-        float: none;          /* Remove float */
+        width: 100%;
+        max-width: 700px;
+        margin: -20px auto 10mm auto;
+        padding: 0 5mm;
         box-sizing: border-box;
         page-break-inside: avoid;
-        margin-top: -20px;      /* Small top margin */
-        margin-bottom: 10mm;  /* Bottom margin */
-        padding: 0 5mm;       /* Optional: small left-right padding */
     }
 
+    /* Panels for print */
     .left-panel {
         width: 100%;
+        box-shadow: none !important;  /* Remove shadow sa print */
+        border: none;                  /* Optional: tanggalin border kung gusto mo cleaner look */
     }
 
     .right-panel {
-        display: none;        /* Hide payslip list */
+        display: none;
     }
-    
+
+    /* Remove shadows sa lahat ng panels just in case */
+    .main-layout, .left-panel, .right-panel {
+        box-shadow: none !important;
+    }
 
     /* Full page Letter */
     @page {
-        size: letter;         /* Portrait */
-        margin: 5mm 10mm 10mm 10mm; /* Top Right Bottom Left */
+        size: letter;
+        margin: -10px 35px 0 0;
     }
-    
 }
 
-/* --- Print Employee Payslip List only --- */
-@media print {
-    body.print-list-mode {
-        /* Hide everything except right panel */
-        .left-panel, .payslip { display: none !important; }
 
-        .right-panel { 
-            display: block !important; 
-            width: 100%; 
-            border: none !important; /* REMOVE border for print */
-            background: #fff !important; /* optional: make background white */
+
+/* --- Print Employee Payslip List --- */
+@media print {
+
+    body.print-list-mode {
+
+        /* Hide other panels */
+        .left-panel,
+        .payslip {
+            display: none !important;
         }
 
-        /* Hide all buttons in the table when printing */
-        .right-panel button { display: none !important; }
+        /* Show right panel */
+        .right-panel {
+            display: block !important;
+            width: 100%;
+            border: none !important;
+            background: #fff !important;
+            box-shadow: none;
+            margin: -30px auto 10mm auto;
+        }
 
-        /* Hide Action column completely, including borders */
+        /* Hide buttons */
+        .right-panel button {
+            display: none !important;
+        }
+
+        /* Hide Action column */
         #payslipTable th:last-child,
         #payslipTable td:last-child {
             display: none !important;
-            border: none !important;
         }
 
-        /* Make table fill page nicely */
-        #payslipTable { 
-            width: 100%; 
+        /* Table style */
+        #payslipTable {
+            width: 100%;
             border-collapse: collapse;
+            font-size: 11px;
         }
 
-        #payslipTable th, 
-        #payslipTable td { 
-            border: 1px solid #000; /* keep other borders */
+        #payslipTable th,
+        #payslipTable td {
+            border: 1px solid #000;
+        }
+    }
+
+    /* ================= PAGE SIZE MODES ================= */
+
+    /* LETTER */
+    body.print-letter {
+        @page {
+            size: letter portrait;
+            margin: 10mm;
+        }
+    }
+
+    /* A4 */
+    body.print-a4 {
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+    }
+
+    /* LONG (Legal / Folio style) */
+    body.print-long {
+        @page {
+            size: 8.5in 13in;
+            margin: 10mm;
         }
     }
 }
 
 
 
-/* MAIN LAYOUT */
-.main-layout{
+
+
+/* --- Main Layout --- */
+.main-layout {
     display: flex;
+    flex-direction: row;      /* Desktop: side by side */
     gap: 20px;
-    padding: 10px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Malinis, readable */
+    font-size: 14px;
+    padding: 15px;
+    background-color: #f5f5f5;
 }
 
-/* LEFT SIDE */
-.left-panel{
-    flex: 2; /* mas malapad */
+/* --- Left Panel: Payslip Form --- */
+.left-panel {
+    flex: 1;
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* RIGHT SIDE */
-.right-panel{
-    flex: 1; /* mas makitid */
-    border:1px solid #ccc;
-    padding:10px;
-    background:#fafafa;
-    max-height:90vh;
-    overflow-y:auto;
+/* --- Right Panel: Employee Payslip List --- */
+.right-panel {
+    flex: 1;
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* --- Table Styling --- */
+.right-panel table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.right-panel th, 
+.right-panel td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.right-panel th {
+    background-color: #e0e0e0;
+    font-weight: 600;
+}
+
+.right-panel tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* --- Buttons --- */
+button {
+    padding: 6px 12px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    background-color: #0078d7;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
 }
 
 button:hover {
-    opacity: 0.9;
+    background-color: #005ea3;
 }
 
+button.delete-btn {
+    background-color: #d9534f;
+}
+
+button.delete-btn:hover {
+    background-color: #b52b27;
+}
+
+/* --- Responsive Mobile --- */
+@media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column;
+    }
+
+    .right-panel {
+        max-height: none;
+        margin-top: 20px;
+    }
+}
 @media (max-width: 600px) {
     div[style*="flex"] button {
         width: 100%; /* Full width on mobile */
@@ -323,7 +442,7 @@ button:hover {
 <td style="white-space:nowrap; background-color:#f0f0f0;">Total Earnings</td>
 <td><input id="totalEarnings" readonly></td>
 
-<th style="white-space:nowrap; background-color:#f0f0f0;">Total Deductions</th>
+<th style="white-space:nowrap;     text-align:left; background-color:#f0f0f0;">Total Deductions</th>
 <td><input id="totalDeduct" readonly></td>
 </tr>
 
@@ -387,6 +506,7 @@ button:hover {
                 <th>#</th>
                 <th>Employee</th>
                 <th>Net Pay</th>
+                <th>Signature</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -782,6 +902,7 @@ function loadPayslipList() {
             <td>${i+1}</td>
             <td>${p.employee}</td>
             <td style="text-align:right;">${p.netPay}</td>
+            <td style="text-align:right;"></td>
             <td>
                 <button onclick="loadPayslip(${p.id})">Edit</button>
                 <button onclick="deletePayslip(${p.id})" style="color:red;">Delete</button>
@@ -812,19 +933,40 @@ function deletePayslip(id) {
     localStorage.setItem("payslips", JSON.stringify(payslips));
     loadPayslipList();
 }
-// --- Print Employee Payslip List directly ---
-function printPayslipList() {
-    // Add temporary class to body to trigger CSS for list print
+// --- Print Employee Payslip List with Size Option ---
+function printPayslipList(size = "letter") {
+
+    // Remove old size classes
+    document.body.classList.remove("print-a4","print-letter","print-long");
+
+    // Add print mode
     document.body.classList.add("print-list-mode");
 
-    // Trigger print
+    // Add size mode
+    if(size === "a4"){
+        document.body.classList.add("print-a4");
+    }
+    else if(size === "long"){
+        document.body.classList.add("print-long");
+    }
+    else{
+        document.body.classList.add("print-letter"); // default
+    }
+
+    // Print
     window.print();
 
-    // Remove class after printing
+    // Cleanup after print
     setTimeout(() => {
-        document.body.classList.remove("print-list-mode");
+        document.body.classList.remove(
+            "print-list-mode",
+            "print-a4",
+            "print-letter",
+            "print-long"
+        );
     }, 1000);
 }
+
 //JS Function to Clear Payslip List
 function clearPayslipList() {
     if (!payslips.length) {
