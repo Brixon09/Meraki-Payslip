@@ -137,6 +137,21 @@ input:focus{
 
 /* --- Print Employee Payslip List --- */
 @media print {
+    th.employee-col,
+    td.employee-col {
+        width: 10%;        /* o kahit ilang pixels gusto mo */
+        max-width: 100%;
+        white-space: nowrap; /* para hindi mag-wrap */
+        overflow: hidden;    /* cut off kung sobrang haba */
+        text-overflow: ellipsis; /* optional: show ... kapag mahaba */
+    }
+     /* Signature column bigger */
+    th.signature-col,
+    td.signature-col {
+        width: 60%;         /* mas malaki para may space */
+        max-width: 200px;
+        white-space: nowrap;
+    }
 
     body.print-list-mode {
 
@@ -504,9 +519,9 @@ button.delete-btn:hover {
         <thead>
             <tr>
                 <th>#</th>
-                <th>Employee</th>
+                <th class="employee-col">Employee</th>
+                <th class="signature-col">Signature</th>
                 <th>Net Pay</th>
-                <th>Signature</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -900,9 +915,9 @@ function loadPayslipList() {
 
         tr.innerHTML = `
             <td>${i+1}</td>
-            <td>${p.employee}</td>
+            <td class="employee-col">${p.employee}</td>
+            <td class="signature-col" style="text-align:right;"></td>
             <td style="text-align:right;">${p.netPay}</td>
-            <td style="text-align:right;"></td>
             <td>
                 <button onclick="loadPayslip(${p.id})">Edit</button>
                 <button onclick="deletePayslip(${p.id})" style="color:red;">Delete</button>
@@ -1023,8 +1038,8 @@ function renderPayslipList(){
 
         tr.innerHTML = `
             <td>${index+1}</td>
-            <td>${entry.employee}</td>
-            <td>${entry.netPay.toLocaleString()}</td>
+            <td class="employee-col">${entry.employee}</td>
+            <td >${entry.netPay.toLocaleString()}</td>
             <td>
                 <button onclick="editPayslip(${entry.id})">Edit</button>
                 <button onclick="deletePayslip(${entry.id})">Delete</button>
